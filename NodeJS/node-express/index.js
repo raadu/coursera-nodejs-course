@@ -11,28 +11,12 @@ app.use(morgan("dev"));
 app.use(express.static(__dirname+ "/public"));
 app.use(bodyParser.json());
 
-app.all('/dishes', (req,res,next) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
-  next();
-});
+//routers
+const dishRouter = require("./routes/dishRouter");
 
-app.get('/dishes', (req,res,next) => {
-    res.end('Will send all the dishes to you!');
-});
+//dishes id endpoints
 
-app.post('/dishes', (req, res, next) => {
- res.end('Will add the dish: ' + req.body.name + ' with details: ' + req.body.description);
-});
-
-app.put('/dishes', (req, res, next) => {
-  res.statusCode = 403;
-  res.end('PUT operation not supported on /dishes');
-});
- 
-app.delete('/dishes', (req, res, next) => {
-    res.end('Deleting all dishes');
-});
+/* COMMENTING OUT
 
 app.get('/dishes/:dishId', (req,res,next) => {
     res.end('Will send details of the dish: ' + req.params.dishId +' to you!');
@@ -53,6 +37,9 @@ app.delete('/dishes/:dishId', (req, res, next) => {
     res.end('Deleting dish: ' + req.params.dishId);
 });
 
+DONE COMMENTING OUT */
+
+app.use("/dishes", dishRouter);
 
 app.use((req, res, next) => 
 {
