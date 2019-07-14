@@ -10,31 +10,43 @@ connect.then((db) =>
 {
 	console.log("Connected correctly to the server");
 
-	var newDish = Dishes(
-	{
-		name: "Whatever",
-		description: "A description"
-	});
-	
-	newDish.save()
-	.then((dish) =>
-	{
-		console.log(dish);
+ Dishes.create({
+        name: 'Uthappiiizza',
+        description: 'test'
+    })
+    .then((dish) => {
+        console.log(dish);
 
-		return Dishes.find({}).exec();
-	})
-	.then((dishes) => 
-	{
-		console.log(dishes);
+        return Dishes.findByIdAndUpdate(dish._id,
+        {
+        	$set: { description: 'Updated test'},
+        }, 
+        { 
+            new: true 
+        })
+        .exec();
+    })
+    .then((dish) => {
+        console.log(dish);
 
-		return Dishes.remove({});
-	})
-	.then(() =>
-	{
-		return mongoose.connection.close();
-	})
-	.catch((err) =>
-	{
-		console.log(err);
-	})
+        dish.comments.push({
+            rating: 5,
+            comment: 'I\'m getting a sinking feeling!',
+            author: 'Leonardo di Carpaccio'
+        });
+
+        return dish.save();
+    })
+    .then((dish) => {
+        console.log(dish);
+
+        return Dishes.remove({});
+    })
+    .then(() => {
+        return mongoose.connection.close();
+    })
+    .catch((err) => {
+        console.log(err);
+    })
+
 });
