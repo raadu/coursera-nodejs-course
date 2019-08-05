@@ -5,7 +5,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const mongoose = require("mongoose");
 var session = require('express-session');
-var FileStore = require('session-file-store')(session)
+var FileStore = require('session-file-store')(session);
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -15,6 +15,7 @@ var leaderRouter = require("./routes/leaderRouter");
 
 const Dishes = require("./models/dishes");
 
+//MongoDB Connection. Always use new url parser.
 const url = "mongodb://localhost:27017/conFusion";
 const connect = mongoose.connect(url, { useNewUrlParser: true });
 
@@ -44,6 +45,10 @@ app.use(session({
 	store: new FileStore()
 }));
 
+//ROUTES. Index and Users route can be accessed before authentication part.
+app.use('/', indexRouter);
+app.use('/users', usersRouter);
+
 //User authorization middleware
 function auth(req,res,next)
 {
@@ -51,46 +56,21 @@ function auth(req,res,next)
 
 	if(!req.session.user)
 	{
-
-	var authHeader = req.headers.authorization;
-
-	if(!authHeader)
-	{
-		var err = new Error("You are not authenticated!");
-		res.setHeader("WWW-Authenticate","Basic");
-		err.status = 401;
-		return next(err);
-	}
-
-	var auth = new Buffer.from(authHeader.split(" ")[1], "base64").toString().split(":");
-
-	var username = auth[0];
-	var password = auth[1];
-
-	if(username === "admin" && password === "password")
-	{
-		req.session.user = "admin";
-		next();
-	}
-	else
-	{
-		var err = new Error("You are not authenticated!");
-		res.setHeader("WWW-Authenticate","Basic");
-		err.status = 401;
-		return next(err);
-	}
+	var err = new Error("You are not authenticated!");
+	err.status = 401;
+	return next(err);
 	}
 
 	else
 	{
-		if(req.session.user === "admin")
+		if(req.session.user === "authenticated")
 		{
 			next();
 		}
 		else
 		{
 			var err = new Error("You are not authenticated!");
-			err.status = 401;
+			err.status = 403;
 			return next(err);
 		}
 	}
@@ -101,8 +81,7 @@ app.use(auth);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+//ROUTES. These routes can be accessed after the authentication part.
 app.use("/dishes", dishRouter);
 app.use("/promotions", promoRouter);
 app.use("/leaders", leaderRouter);
